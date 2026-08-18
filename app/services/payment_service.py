@@ -49,6 +49,16 @@ async def get_all_payment_service(db:AsyncSession, current_user:User):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No payments found")
 
     return payment_data
+
+async def get_all_admin_payment_service(db:AsyncSession):
+    stmt = select(Payment)
+    result = await db.execute(stmt)
+    payment_data = result.scalars().all()
+
+    if not payment_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No payments found")
+
+    return payment_data
     
 
 async def get_single_payment_service(payment_id: int, db:AsyncSession, current_user:User):

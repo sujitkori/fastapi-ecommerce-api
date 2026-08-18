@@ -2,19 +2,15 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.enums import OrderStatus
 from .order_item_schema import OrderItemResponse
-from .payment_schema import PaymentResponse
+from .user_schema import UserProfileResponse
 
-class OrderResponse(BaseModel):
+class AdminOrderResponse(BaseModel):
     id: int
-    user_id: int
-    total_amount: int
+    user: UserProfileResponse
+    total_amount: float
     status: OrderStatus
     created_at: datetime | None
     updated_at: datetime | None
     order_items: list[OrderItemResponse]
-    payment:PaymentResponse | None
 
     model_config = ConfigDict(from_attributes=True)
-
-class OrderStatusUpdate(BaseModel):
-    status: OrderStatus

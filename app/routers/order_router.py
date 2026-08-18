@@ -24,6 +24,6 @@ async def get_single_order_router(order_id:int, db:AsyncSession=Depends(get_db),
 async def update_order_status_router(order_id:int, order_status:OrderStatusUpdate, db:AsyncSession=Depends(get_db), admin_user:User=Depends(get_admin_user)):
     return await update_order_status_service(order_id, order_status, db, admin_user)
 
-@router.put("/{order_id}/cancel")
+@router.put("/{order_id}/cancel", response_model=OrderResponse)
 async def cancel_order_router(order_id:int, db:AsyncSession=Depends(get_db), current_user:User=Depends(get_current_user)):
     return await cancel_order_service(order_id, db, current_user)

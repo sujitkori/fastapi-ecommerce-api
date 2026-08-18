@@ -14,7 +14,7 @@ ALLOWED_EXTENSIONS = {
 }
 
 def validate_image(image:UploadFile):
-    if not image.content_type.startswith("image/"):
+    if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only image files are allowed."
@@ -25,7 +25,7 @@ def validate_image(image:UploadFile):
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only jpg, jpeg, png and webp are allowed.")
     
-    image.file.seek(0, 2) # Think of file as a long tape with a cursor. seek() simply moves the cursor.
+    image.file.seek(0, 2) # Think of file as a long tape with a cursor. seek() simply moves the cursor/pointer inside the uploaded file
                                     #     keyboard.jpg
 
                                     #   Bytes:
@@ -60,3 +60,74 @@ async def save_image(image:UploadFile) -> str:
         shutil.copyfileobj(image.file, buffer) # image.file is a python file object. If you do content = image.file.read() then content is of type bytes.
 
     return f"media/products/{filename}" # Here instead of using media_folder we wrote manually f"media/products" because to be consistent. Because in linux it might use backward slash (\) so.
+
+
+
+
+# NOTE:
+# Good question. "image/" is not something we invented for FastAPI. It comes from the MIME type / media type standard used for HTTP files.
+
+# When a browser uploads a file, the request includes a Content-Type for that file.
+
+# For images, the MIME types look like:
+
+# image/jpeg
+# image/png
+# image/webp
+# image/gif
+# image/svg+xml
+
+# So when we write, image.content_type.startswith("image/")
+# we are asking:
+
+# "Does the uploaded file's content type belong to the image category?"
+
+# Example
+# For a JPEG:
+# image.content_type might be "image/jpeg",
+# then, image.startswith("image/") 
+# returns True
+
+# seek Explanation
+# The general syntax is:
+
+# file.seek(offset, whence)
+
+# where whence tells Python where to start counting from.
+
+# The three common whence values
+# 0 → beginning of file
+# 1 → current position
+# 2 → end of file
+
+# So:
+
+# seek(0, 0)
+
+# means:
+
+# Start from beginning, move 0 bytes.
+
+# seek(0, 2)
+
+# means:
+
+# Start from end, move 0 bytes.
+
+# seek(-10, 2)
+
+# means:
+
+# Start from end, move backward 10 bytes.
+
+# What if you want the middle?
+
+# Suppose the file is 100 bytes.
+
+# You could do:
+
+# file.seek(50, 0)
+
+# That means:
+
+# Start at the beginning and move 50 bytes.

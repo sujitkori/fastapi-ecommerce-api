@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
+from .user_schema import UserResponse
 
 class ReviewRequest(BaseModel):
     rating:int = Field(ge=1, le=5)
@@ -17,6 +18,7 @@ class ReviewRequest(BaseModel):
 class ReviewResponse(BaseModel):
     id:int
     user_id:int
+    user:UserResponse
     product_id:int
     rating:int
     comment:str

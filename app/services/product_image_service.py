@@ -24,7 +24,7 @@ async def upload_product_image_service(product_id: int, image:UploadFile, db:Asy
     
     image_path = await save_image(image)
 
-    product_exist.image = image_path 
+    product_exist.image = image_path  #We do not save the actual image bytes in MySQL. Instead, we save only its path:
 
     await db.commit()
     await db.refresh(product_exist)

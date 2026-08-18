@@ -11,7 +11,7 @@ class PaymentResponse(BaseModel):
     amount: int
     payment_method:PaymentMethod
     payment_status: PaymentStatus
-    transaction_id: str
+    transaction_id: str | None
     created_at: datetime
     updated_at: datetime
 

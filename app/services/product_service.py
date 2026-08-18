@@ -48,8 +48,11 @@ async def product_fetch_service(skip:int, limit:int, category_id:int | None, min
         .where(Product.is_active == True, Product.is_deleted == False)
     )
 
+    range_stmt = select(Product).where(Product.is_active == True, Product.is_deleted == False)
+
     if category_id is not None:
         stmt = stmt.where(Product.category_id == category_id)
+        range_stmt = range_stmt.where(Product.category_id == category_id)
     
     if min_price is not None:
         stmt = stmt.where(Product.price >= min_price)
@@ -59,6 +62,7 @@ async def product_fetch_service(skip:int, limit:int, category_id:int | None, min
 
     if search:
         stmt = stmt.where(Product.name.ilike(f"%{search}%"))
+        range_stmt = range_stmt.where(Product.name.ilike(f"%{search}%"))
 
     if sort_by:
         if hasattr(Product, sort_by.value):
@@ -69,9 +73,22 @@ async def product_fetch_service(skip:int, limit:int, category_id:int | None, min
             else:
                 stmt = stmt.order_by(column.asc())
 
+
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total_result = await db.execute(count_stmt)
     total = total_result.scalar_one()
+
+    filtered_products = range_stmt.subquery()
+
+    price_range_stmt = (
+        select(
+            func.min(filtered_products.c.price),
+            func.max(filtered_products.c.price)
+    ).select_from(filtered_products)
+    )
+
+    price_range_result = await db.execute(price_range_stmt)
+    available_min_price, available_max_price = price_range_result.one()
 
     stmt = stmt.offset(skip).limit(limit)
 
@@ -108,6 +125,8 @@ async def product_fetch_service(skip:int, limit:int, category_id:int | None, min
         "total": total,
         "skip": skip,
         "limit": limit,
+        "available_min_price": available_min_price,
+        "available_max_price": available_max_price,
         "data": products_response
     }
 
@@ -123,7 +142,27 @@ async def get_single_product_service(product_id:int, db:AsyncSession):
     if not single_product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-    return single_product
+    rating_stmt = (
+            select(
+                func.avg(Review.rating),
+                func.count(Review.id)
+            )
+            .where(Review.product_id == product_id)
+        )
+    
+    rating_result = await db.execute(rating_stmt)
+    average_rating, review_count = rating_result.one()
+
+    product_response = ProductResponse.model_validate(single_product).model_copy(
+        update={
+            "average_rating": average_rating,
+            "review_count": review_count,
+        }
+    )
+
+    
+
+    return product_response
 
 async def update_single_product_service(product_id:int, product:ProductUpdate, db:AsyncSession):
     stmt = (

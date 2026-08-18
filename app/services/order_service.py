@@ -47,7 +47,8 @@ async def create_order_service(db:AsyncSession, current_user:User):
         select(Orders).options(
             selectinload(Orders.order_items)
             .joinedload(OrderItems.product)
-            .joinedload(Product.category)
+            .joinedload(Product.category),
+            joinedload(Orders.payment)
             )
             .where(Orders.id == new_order.id)
             )
@@ -64,7 +65,8 @@ async def get_order_service(db:AsyncSession, current_user:User):
         .options(
             selectinload(Orders.order_items)
             .joinedload(OrderItems.product)
-            .joinedload(Product.category)
+            .joinedload(Product.category),
+            joinedload(Orders.payment)
         ).where(Orders.user_id == current_user.id)
     )
 
@@ -81,7 +83,8 @@ async def get_single_order_service(order_id:int, db:AsyncSession, current_user:U
         select(Orders).options(
             selectinload(Orders.order_items)
             .joinedload(OrderItems.product)
-            .joinedload(Product.category)
+            .joinedload(Product.category),
+            joinedload(Orders.payment)
             ).where(Orders.id == order_id, Orders.user_id == current_user.id)
         )
     
@@ -102,7 +105,8 @@ async def update_order_status_service(order_id:int, order_status:OrderStatusUpda
         select(Orders).options(
             selectinload(Orders.order_items)
             .joinedload(OrderItems.product)
-            .joinedload(Product.category)
+            .joinedload(Product.category),
+            joinedload(Orders.payment)
             ).where(Orders.id == order_id)
         )
     
@@ -161,7 +165,7 @@ async def cancel_order_service(order_id: int, db:AsyncSession, current_user:User
         )
     
     order_result = await db.execute(order_stmt)
-    order_exist = order_result.scalar_one_or_none()
+    order_exist = order_result.unique().scalar_one_or_none()
 
     if not order_exist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")

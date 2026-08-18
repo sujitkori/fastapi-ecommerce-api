@@ -1,20 +1,20 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from app.schemas import CategoryResponse
 from enum import Enum
 
 class ProductCreate(BaseModel):
-    name: str
-    description: str
-    price: int
-    stock_quantity: int
+    name: str = Field(min_length=1, max_length=150)
+    description: str = Field(max_length=2000)
+    price: int = Field(gt=0)
+    stock_quantity: int = Field(ge=0)
     category_id: int
 
 class ProductUpdate(BaseModel):
-    name: str
-    description: str
-    price: int
-    stock_quantity: int
+    name: str = Field(min_length=1, max_length=150)
+    description: str = Field(max_length=2000)
+    price: int = Field(gt=0)
+    stock_quantity: int = Field(ge=0)
     category_id: int
     is_active:bool
 
@@ -51,4 +51,6 @@ class ProductListResponse(BaseModel):
     total: int
     skip: int
     limit: int
+    available_min_price: int
+    available_max_price: int
     data: list[ProductResponse]
