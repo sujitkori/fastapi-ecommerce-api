@@ -19,7 +19,7 @@ jobs:
         run: python --version
 
       - name: Build Docker image
-        run: docker build -t fastapi-ecommerce-api:ci .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-ecommerce-api:latest .
 
 
 
