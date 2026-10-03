@@ -18,5 +18,8 @@ jobs:
       - name: Verify Python
         run: python --version
 
+      - name: Build Docker image
+        run: docker build -t fastapi-ecommerce-api:ci .
+
 
 
